@@ -36,9 +36,9 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
     private String[] lunch_1 = {
-            "I2408", "I2411", "I2412-1", "I2412-2", "Exit", "Toilet-M1", "I1402", "No.7", "I2415",
-            "No.9", "I1401", "I2401", "I2404", "I2405", "No.14", "No.15", "I3401", "Exit", "I3402", "Exit", "Toilet-F1",
-            "Office", "Meeting Room", "I5401", "No.24", "I4402", "I4401", "Exit", "I5402", "Exit", "Toilet-M2"
+            "I2408", "I2411", "I2412-1", "I2412-2", "Elevator-1", "Toilet-M1", "I1402", "I-1三叉點", "I2415",
+            "Stairs-1", "I1401", "I2401", "I2404", "I2405", "I-2三叉點", "I-3三叉點", "I3401", "Stairs-2", "I3402", "Elevator-2", "Toilet-F1",
+            "Office", "Meeting Room", "I5401", "I-4三叉點", "I4402", "I4401", "Stairs-3", "I5402", "Elevator-3", "Toilet-M2"
     };
     //
     int simulationminor = 2;
@@ -86,11 +86,11 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 //        beaconManager.bind(this);
 
 
+//---------------------------------下拉選單---------------------------------------------------------------------
+
+
         mContext = this.getApplicationContext();
         mSpinner = (Spinner) findViewById(R.id.list_2);
-
-
-//---------------------------------下拉選單---------------------------------------------------------------------
 
         lunchList = new ArrayAdapter<String>(MainActivity.this, R.layout.myspinner, lunch_1);
         mSpinner.setAdapter(lunchList);
@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
                     if (max == null) {
                         max = beacons;
-                    } else if (max.iterator().next().getRssi() > beacons.iterator().next().getRssi()) {
+                    } else if (max.iterator().next().getRssi() < beacons.iterator().next().getRssi()) {
                         max = beacons;
                     }
                     minor = Integer.parseInt(max.iterator().next().getId3().toString());
@@ -213,6 +213,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
             JSONArray algorithm = jsonData.getJSONArray("algorithm");
 
+
             for (int i = 0; i < algorithm.length(); i++) {
                 JSONObject nowNode = algorithm.getJSONObject(i);
 
@@ -220,8 +221,9 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
                 classroomName[i][1] = nowNode.getString("room_name");
 
                 routename[i] = nowNode.getString("room_name");
-
             }
+
+
 
 
             checkclassroom(classroomName);
@@ -258,13 +260,31 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         if (major == null) {
             return;
         }
+
+        //演算法回傳路徑 裝進陣列
         calculateShortestPath(minor, dest, 2);
         mDijk_result = SP.dijkstra.getPath();
-        Dijk = new String[mDijk_result.length]; //第一次會有小問題
-        for (int j = 0; j < mDijk_result.length; j++) {
-            int Path_number=mDijk_result[j];
-            Dijk[j]=routename[Path_number];
+
+        //防止空值
+        if (SP.dijkstra.getPath() == null) {
+            return;
         }
+
+        Dijk = new String[mDijk_result.length];
+//        for (int j = 0; j < mDijk_result.length; j++) {
+//            int Path_number = mDijk_result[j];
+//            Dijk[j] = routename[Path_number];
+//        }
+
+        int count=mDijk_result.length-1; //因為陣列由0開始算，故減一
+        for (int j = 0; j < mDijk_result.length; j++){
+            int Path_number = mDijk_result[count];
+            Dijk[j] = routename[Path_number];
+            if (count>=0){
+                count--;
+            }
+        }
+
 //
         adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line,
